@@ -30,5 +30,11 @@
 *.exe
 *.out
 *.app
-/.vs
-/binaries
+
+# Build folders
+build/
+
+# Cache/IDE folders
+.cache/
+.vscode/
+.idea/
