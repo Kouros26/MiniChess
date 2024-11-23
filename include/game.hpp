@@ -1,9 +1,6 @@
 #pragma once
-#include <vector>
 
 #include "board.hpp"
-#include "pawn.hpp"
-#include "piece.hpp"
 
 
 namespace sf
@@ -14,9 +11,6 @@ namespace sf
 class Game
 {
 	Board board;
-
-	std::vector<Piece*> pieces;
-	Pawn testPawn;
 
 public:
 
