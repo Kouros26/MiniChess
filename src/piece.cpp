@@ -3,8 +3,9 @@
 
 #include "SFML/Window/VideoMode.hpp"
 
-Piece::Piece(const PieceType pType, const Color pColor)
-	: texture(std::make_shared<sf::Texture>()), type(pType), color(pColor)
+Piece::Piece(const PieceType pType, const Color pColor, const unsigned x, const unsigned y)
+	: texture(std::make_shared<sf::Texture>()), type(pType), color(pColor),
+	  boardPosition({.x = static_cast<uint8_t>(x), .y = static_cast<uint8_t>(y) })
 {
 	std::string_view extension = ".png";
 
@@ -28,4 +29,9 @@ Piece::Piece(const PieceType pType, const Color pColor)
 	const sf::FloatRect bounds = sprite.getLocalBounds();
 	sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
 	sprite.setPosition(static_cast<float>(monitor.width) / 2.0f, static_cast<float>(monitor.height) / 2.0f);
+}
+
+void Piece::SetBoardPosition(const BoardCoord pNewPosition)
+{
+	boardPosition = pNewPosition;
 }

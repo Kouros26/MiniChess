@@ -2,7 +2,6 @@
 
 #include "board.hpp"
 
-
 namespace sf
 {
 	class RenderWindow;

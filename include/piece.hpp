@@ -46,6 +46,12 @@ inline static std::string_view PieceTypeAsString(const PieceType type)
 	return "ERROR";
 }
 
+struct BoardCoord
+{
+	uint8_t x;
+	uint8_t y;
+};
+
 class Piece
 {
 protected:
@@ -54,16 +60,23 @@ protected:
 	std::shared_ptr<sf::Texture> texture;
 
 	PieceType type = PieceType::Pawn;
-	Color color = Color::White; 
+	Color color = Color::White;
+
+	BoardCoord boardPosition;
 
 public:
 
-	Piece(const PieceType pType, const Color pColor);
+	Piece(const PieceType pType, const Color pColor, const unsigned x, const unsigned y);
 
 	virtual ~Piece() = default;
 
 	virtual bool CanMove(uint8_t fromX, uint8_t fromY, uint8_t toX, uint8_t toY) = 0;
 
+	void SetBoardPosition(const BoardCoord pNewPosition);
+
+	virtual void GetUnrestrictedMoveCapabilities(int8_t& outHorizontal, int8_t& outVertical, int8_t& outDiagonal) = 0;
+
 	constexpr sf::Sprite& GetSprite() { return sprite; }
 	constexpr PieceType GetType() const { return type; }
+	constexpr BoardCoord GetBoardPosition() const { return boardPosition; }
 };

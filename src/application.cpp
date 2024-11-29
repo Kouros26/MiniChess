@@ -10,6 +10,10 @@ void Application::Run()
 {
     while (window.isOpen())
     {
+        window.clear(sf::Color::Black);
+
+        game.DrawGameSprites(window);
+
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -30,10 +34,6 @@ void Application::Run()
                 window.setView(sf::View(visibleArea));
             }
         }
-
-        window.clear(sf::Color::Black);
-
-        game.DrawGameSprites(window);
 
         window.display();
     }
