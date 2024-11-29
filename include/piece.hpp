@@ -48,8 +48,11 @@ inline static std::string_view PieceTypeAsString(const PieceType type)
 
 struct BoardCoord
 {
-	uint8_t x;
-	uint8_t y;
+	int8_t x;
+	int8_t y;
+
+	BoardCoord operator+(const BoardCoord& second) const;
+	BoardCoord operator-(const BoardCoord& second) const;
 };
 
 class Piece
@@ -78,5 +81,6 @@ public:
 
 	constexpr sf::Sprite& GetSprite() { return sprite; }
 	constexpr PieceType GetType() const { return type; }
+	constexpr Color GetColor() const { return color; }
 	constexpr BoardCoord GetBoardPosition() const { return boardPosition; }
 };

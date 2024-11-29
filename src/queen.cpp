@@ -11,7 +11,7 @@ bool Queen::CanMove(uint8_t fromX, uint8_t fromY, uint8_t toX, uint8_t toY)
 
 void Queen::GetUnrestrictedMoveCapabilities(int8_t& outHorizontal, int8_t& outVertical, int8_t& outDiagonal)
 {
-	outHorizontal = -1;
-	outVertical = -1;
-	outDiagonal = -1;
+	outHorizontal = 100;
+	outVertical = 100;
+	outDiagonal = 100;
 }

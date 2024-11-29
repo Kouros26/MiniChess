@@ -13,5 +13,5 @@ void Bishop::GetUnrestrictedMoveCapabilities(int8_t& outHorizontal, int8_t& outV
 {
 	outHorizontal = 0;
 	outVertical = 0;
-	outDiagonal = -1;
+	outDiagonal = 100;
 }

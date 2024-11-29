@@ -6,9 +6,9 @@ Square::~Square()
 	pieceOnSquare = nullptr;
 }
 
-void Square::SetPieceOnSquare(Piece& piece)
+void Square::SetPieceOnSquare(Piece* piece)
 {
-	pieceOnSquare = &piece;
+	pieceOnSquare = piece;
 }
 
 void Square::RegisterInfluence(Piece& piece)

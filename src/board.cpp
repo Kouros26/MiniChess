@@ -35,7 +35,7 @@ Board::Board()
 	spotSprite.setOrigin(textureSize.width / 2, textureSize.height / 2);
 
 	sprite.setTexture(texture);
-	sprite.setScale(sf::Vector2f(0.3f, 0.3f));
+	sprite.setScale(sf::Vector2f(0.5f, 0.5f));
 
 	textureSize = sprite.getLocalBounds();
 	sprite.setOrigin(textureSize.width / 2, textureSize.height / 2);
@@ -68,43 +68,54 @@ void Board::CreatePiece(const PieceType type, const Color color, const int x, co
 	{
 	case PieceType::Pawn:
 		pieces.emplace_back(std::make_unique<Pawn>(color, x, y)); 
-		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		grid[y][x].SetPieceOnSquare(pieces[pieces.size() - 1].get());
 		break;
 
 	case PieceType::Rook:
 		pieces.emplace_back(std::make_unique<Rook>(color, x, y));
-		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		grid[y][x].SetPieceOnSquare(pieces[pieces.size() - 1].get());
 		break;
 
 	case PieceType::Knight:
 		pieces.emplace_back(std::make_unique<Knight>(color, x, y));
-		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		grid[y][x].SetPieceOnSquare(pieces[pieces.size() - 1].get());
 		break;
 
 	case PieceType::Bishop:
 		pieces.emplace_back(std::make_unique<Bishop>(color, x, y));
-		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		grid[y][x].SetPieceOnSquare(pieces[pieces.size() - 1].get());
 		break;
 
 	case PieceType::Queen:
 		pieces.emplace_back(std::make_unique<Queen>(color, x, y));
-		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		grid[y][x].SetPieceOnSquare(pieces[pieces.size() - 1].get());
 		break;
 
 	case PieceType::King:
 		pieces.emplace_back(std::make_unique<King>(color, x, y));
-		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		grid[y][x].SetPieceOnSquare(pieces[pieces.size() - 1].get());
 		break;
 	}
 
-	const sf::Vector2f boardPosition = sprite.getPosition();
-	grid[y][x].GetPiece()->GetSprite().setPosition(boardPosition.x + xPieceOffset - xTileOffset * 4, boardPosition.y + yPieceOffset + yTileOffset * 3);
-	MovePieceAt(*grid[y][x].GetPiece(), 0, 0, x, y);
+	grid[y][x].GetPiece()->GetSprite().setPosition(BoardCoordToPos(x, y));
 }
 
 sf::Vector2f Board::BoardCoordToPos(const BoardCoord coords)
 {
-	return sf::Vector2f(coords.x * xTileOffset, coords.y * yTileOffset);
+	return sf::Vector2f(coords.x * tileSize + xFirstTile, yFirstTile - coords.y * tileSize );
+}
+
+sf::Vector2f Board::BoardCoordToPos(const int x, const int y)
+{
+	return sf::Vector2f(x * tileSize + xFirstTile, yFirstTile - y * tileSize);
+}
+
+BoardCoord Board::PosToBoardCoord(const sf::Vector2f pos)
+{
+	BoardCoord coords;
+	coords.x = static_cast<int8_t>((pos.x - xFirstTile) / tileSize);
+	coords.y = static_cast<int8_t>((yFirstTile - pos.y) / tileSize);
+	return coords;
 }
 
 std::vector<sf::Vector2f> Board::GetAvailableMovesPositions(Piece& piece)
@@ -115,31 +126,110 @@ std::vector<sf::Vector2f> Board::GetAvailableMovesPositions(Piece& piece)
 
 	piece.GetUnrestrictedMoveCapabilities(horizontal, vertical, diagonal);
 
+	auto CheckSquare = [&](const int8_t x, const int8_t y)
+		{
+			if (x < 0 || x >= size || y < 0 || y >= size)
+				return false;
 
-	if (horizontal == -1) // If infinite horizontal movement
+			Piece* tempPiece = GetPieceAt(x, y);
+
+			if (tempPiece != nullptr)
+			{
+				if (tempPiece->GetColor() == piece.GetColor())
+				{
+					//finalVector.push_back(BoardCoordToPos({ .x = x, .y = y })); // TODO: REMOVE THIS
+					return false; // TODO: set to false after implementation is done
+				}
+
+				finalVector.push_back(BoardCoordToPos({ .x = x, .y = y }));
+				return false;
+			}
+
+			finalVector.push_back(BoardCoordToPos({ .x = x, .y = y }));
+
+			return true;
+		};
+
+	if (piece.GetType() == PieceType::Knight)
 	{
-		for (int i = static_cast<int>(coords.x) - 1; i > 0; i--) // Check for left
-		{
-			finalVector.push_back(BoardCoordToPos({ .x = static_cast<uint8_t>(i), .y = coords.y }));
-		}
+		BoardCoord piecePos = piece.GetBoardPosition();
+		CheckSquare(piecePos.x - 1, piecePos.y + 2);
+		CheckSquare(piecePos.x + 1, piecePos.y + 2);
 
-		for (int i = static_cast<int>(coords.x) + 1; i < size; i++) // Check for right
-		{
-			finalVector.push_back(BoardCoordToPos({ .x = static_cast<uint8_t>(i), .y = coords.y }));
-		}
+		CheckSquare(piecePos.x - 1, piecePos.y - 2);
+		CheckSquare(piecePos.x + 1, piecePos.y - 2);
+
+		CheckSquare(piecePos.x - 2, piecePos.y + 1);
+		CheckSquare(piecePos.x - 2, piecePos.y - 1);
+
+		CheckSquare(piecePos.x + 2, piecePos.y + 1);
+		CheckSquare(piecePos.x + 2, piecePos.y - 1);
+
+		return finalVector;
 	}
 
-	if (vertical == -1) // If infinite vertical movement
+	int8_t horizontalCopy = horizontal;
+	for (int8_t i = coords.x - 1; i >= 0 && horizontalCopy > 0; i--, horizontalCopy--) // Check for left
 	{
-		for (int i = static_cast<int>(coords.y) - 1; i > 0; i--) // Check for down
-		{
-			finalVector.push_back(BoardCoordToPos({ .x = coords.x, .y = static_cast<uint8_t>(i) }));
-		}
+		if (!CheckSquare(i, coords.y))
+			break;
+	}
 
-		//for (int i = coords.x + 1; i > size; i++) // Check for right
-		//{
-		//	finalVector.push_back(BoardCoordToPos({ .x = static_cast<uint8_t>(i), .y = coords.y }));
-		//}
+	horizontalCopy = horizontal;
+	for (int8_t i = coords.x + 1; i < size && horizontalCopy > 0; i++, horizontalCopy--) // Check for right
+	{
+		if (!CheckSquare(i, coords.y))
+			break;
+	}
+
+	int8_t verticalCopy = vertical;
+	for (int8_t i = coords.y - 1; i >= 0 && verticalCopy > 0; i--, verticalCopy--) // Check for down
+	{
+		if (!CheckSquare(coords.x, i))
+			break;
+	}
+
+	verticalCopy = vertical;
+	for (int8_t i = coords.y + 1; i < size && verticalCopy > 0; i++, verticalCopy--) // Check for up
+	{
+		if (!CheckSquare(coords.x, i))
+			break;
+	}
+
+	int8_t diagonalCopy = diagonal;
+	for (BoardCoord coordsIncr = coords + BoardCoord{ .x = -1, .y = 1};
+		 coordsIncr.x >= 0 && coordsIncr.y < size && diagonalCopy > 0;
+		 coordsIncr = coordsIncr + BoardCoord{ .x = -1, .y = 1 }, diagonalCopy--) // Check for up-left
+	{
+		if (!CheckSquare(coordsIncr.x, coordsIncr.y))
+			break;
+	}
+
+	diagonalCopy = diagonal;
+	for (BoardCoord coordsIncr = coords + BoardCoord{ .x = 1, .y = 1 };
+		coordsIncr.x < size && coordsIncr.y < size && diagonalCopy > 0;
+		coordsIncr = coordsIncr + BoardCoord{ .x = 1, .y = 1 }, diagonalCopy--) // Check for up-right
+	{
+		if (!CheckSquare(coordsIncr.x, coordsIncr.y))
+			break;
+	}
+
+	diagonalCopy = diagonal;
+	for (BoardCoord coordsIncr = coords - BoardCoord{ .x = 1, .y = 1 };
+		coordsIncr.x >= 0 && coordsIncr.y >= 0 && diagonalCopy > 0;
+		coordsIncr = coordsIncr - BoardCoord{ .x = 1, .y = 1 }, diagonalCopy--) // Check for down-left
+	{
+		if (!CheckSquare(coordsIncr.x, coordsIncr.y))
+			break;
+	}
+
+	diagonalCopy = diagonal;
+	for (BoardCoord coordsIncr = coords + BoardCoord{ .x = 1, .y = -1 };
+		coordsIncr.x < size && coordsIncr.y >= 0 && diagonalCopy > 0;
+		coordsIncr = coordsIncr + BoardCoord{ .x = 1, .y = -1 }, diagonalCopy--) // Check for down-right
+	{
+		if (!CheckSquare(coordsIncr.x, coordsIncr.y))
+			break;
 	}
 
 	return finalVector;
@@ -163,9 +253,13 @@ void Board::Draw(sf::RenderWindow& window)
 
 	if (selectedPiece != nullptr)
 	{
-		const auto moves = GetAvailableMovesPositions(*selectedPiece);
+		if (newSelectedPiece)
+		{
+			pieceAvailableMoves = GetAvailableMovesPositions(*selectedPiece);
+			newSelectedPiece = false;
+		}
 
-		for (const auto& move : moves)
+		for (const auto& move : pieceAvailableMoves)
 		{
 			spotSprite.setPosition(move.x, move.y);
 			window.draw(spotSprite);
@@ -181,23 +275,39 @@ void Board::SelectClickedPiece(const sf::Vector2f& position)
 
 		if (piece->GetSprite().getGlobalBounds().contains(position))
 		{
+			newSelectedPiece = selectedPiece != piece.get();
 			selectedPiece = piece.get();
-			std::cout << "Sprite " << PieceTypeAsString(piece->GetType()) << " clicked!" << '\n';
 
 			return;
 		}
 	}
 
+	for (const auto& spotPosition : pieceAvailableMoves)
+	{
+		sf::Vector2f delta = spotPosition - position;
+		delta.x = std::abs(delta.x);
+		delta.y = std::abs(delta.y);
+
+		if (delta.x < 50 && delta.y < 50)
+		{
+			MovePieceAt(*selectedPiece, PosToBoardCoord(spotPosition));
+		}
+	}
+
+	newSelectedPiece = true;
 	selectedPiece = nullptr;
-	std::cout << "No Sprite" << '\n';
 }
 
-void Board::MovePieceAt(Piece& piece, const uint8_t xFrom, const uint8_t yFrom, const uint8_t xTo, const uint8_t yTo) const
+void Board::MovePieceAt(Piece& piece, const BoardCoord coords)
 {
-	piece.GetSprite().move((xTo - xFrom) * xTileOffset, (yTo - yFrom) * -yTileOffset);
+	BoardCoord previousCoords = piece.GetBoardPosition();
+	grid[previousCoords.y][previousCoords.x].SetPieceOnSquare(nullptr);
+	grid[coords.y][coords.x].SetPieceOnSquare(&piece);
+	piece.SetBoardPosition(coords);
+	piece.GetSprite().setPosition(BoardCoordToPos(coords));
 }
 
-Piece& Board::GetPieceAt(const uint8_t x, const uint8_t y)
+Piece*& Board::GetPieceAt(const int8_t x, const int8_t y)
 {
-	return *grid[y][x].GetPiece();
+	return grid[y][x].GetPiece();
 }

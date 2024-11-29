@@ -3,9 +3,19 @@
 
 #include "SFML/Window/VideoMode.hpp"
 
+BoardCoord BoardCoord::operator+(const BoardCoord& second) const
+{
+	return BoardCoord(this->x + second.x, this->y + second.y );
+}
+
+BoardCoord BoardCoord::operator-(const BoardCoord& second) const
+{
+	return BoardCoord(this->x - second.x, this->y - second.y);
+}
+
 Piece::Piece(const PieceType pType, const Color pColor, const unsigned x, const unsigned y)
 	: texture(std::make_shared<sf::Texture>()), type(pType), color(pColor),
-	  boardPosition({.x = static_cast<uint8_t>(x), .y = static_cast<uint8_t>(y) })
+	  boardPosition({.x = static_cast<int8_t>(x), .y = static_cast<int8_t>(y) })
 {
 	std::string_view extension = ".png";
 

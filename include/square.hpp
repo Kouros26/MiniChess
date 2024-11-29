@@ -14,7 +14,7 @@ public:
 
 	constexpr Piece*& GetPiece() { return pieceOnSquare; }
 
-	void SetPieceOnSquare(Piece& piece);
+	void SetPieceOnSquare(Piece* piece);
 
 	void RegisterInfluence(Piece& piece);
 

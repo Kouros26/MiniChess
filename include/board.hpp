@@ -23,18 +23,23 @@ class Board
 	std::array<std::array<Square, size>, size> grid{};
 
 	Piece* selectedPiece = nullptr;
+	std::vector<sf::Vector2f> pieceAvailableMoves{};
 
-	uint8_t xPieceOffset = 16;
-	uint8_t yPieceOffset = 17;
+	uint16_t xFirstTile = 610;
+	uint16_t yFirstTile = 890;
 
-	uint8_t xTileOffset = 85;
-	uint8_t yTileOffset = 86;
+	uint8_t tileSize = 100;
+
+	bool newSelectedPiece = false;
 
 	void InitializeBoard(Color color);
 
 	void CreatePiece(const PieceType type, const Color color, const int x, const int y);
 
 	sf::Vector2f BoardCoordToPos(BoardCoord coords);
+	sf::Vector2f BoardCoordToPos(const int x, const int y);
+
+	BoardCoord PosToBoardCoord(sf::Vector2f pos);
 
 	std::vector<sf::Vector2f> GetAvailableMovesPositions(Piece& piece);
 
@@ -48,7 +53,7 @@ public:
 
 	void SelectClickedPiece(const sf::Vector2f& position);
 
-	void MovePieceAt(Piece& piece, uint8_t xFrom, uint8_t yFrom, uint8_t xTo, uint8_t yTo) const;
+	void MovePieceAt(Piece& piece, const BoardCoord coords);
 
-	Piece& GetPieceAt(const uint8_t x, const uint8_t y);
+	Piece*& GetPieceAt(const int8_t x, const int8_t y);
 };
