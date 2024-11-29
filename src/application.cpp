@@ -15,6 +15,20 @@ void Application::Run()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+            {
+                const sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                sf::Vector2f mousePosF(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
+
+                game.GetBoard().SelectClickedPiece(mousePosF);
+            }
+
+            if (event.type == sf::Event::Resized) 
+            {
+                sf::FloatRect visibleArea(0.f, 0.f, static_cast<float>(event.size.width), static_cast<float>(event.size.height));
+                window.setView(sf::View(visibleArea));
+            }
         }
 
         window.clear(sf::Color::Black);

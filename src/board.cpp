@@ -2,6 +2,12 @@
 
 #include <iostream>
 
+#include "bishop.hpp"
+#include "king.hpp"
+#include "knight.hpp"
+#include "pawn.hpp"
+#include "queen.hpp"
+#include "rook.hpp"
 #include "SFML/Window/VideoMode.hpp"
 
 Board::Board()
@@ -44,10 +50,42 @@ void Board::InitializeBoard(Color color)
 
 void Board::CreatePiece(const PieceType type, const Color color, const int x, const int y)
 {
-	grid[y][x] = Piece(type, color);
+	switch (type)
+	{
+	case PieceType::Pawn:
+		pieces.emplace_back(std::make_unique<Pawn>(color)); 
+		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		break;
+
+	case PieceType::Rook:
+		pieces.emplace_back(std::make_unique<Rook>(color));
+		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		break;
+
+	case PieceType::Knight:
+		pieces.emplace_back(std::make_unique<Knight>(color));
+		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		break;
+
+	case PieceType::Bishop:
+		pieces.emplace_back(std::make_unique<Bishop>(color));
+		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		break;
+
+	case PieceType::Queen:
+		pieces.emplace_back(std::make_unique<Queen>(color));
+		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		break;
+
+	case PieceType::King:
+		pieces.emplace_back(std::make_unique<King>(color));
+		grid[y][x].SetPieceOnSquare(*pieces[pieces.size() - 1]);
+		break;
+	}
+
 	const sf::Vector2f boardPosition = sprite.getPosition();
-	grid[y][x].value().GetSprite().setPosition(boardPosition.x + xPieceOffset - xTileOffset * 4, boardPosition.y + yPieceOffset + yTileOffset * 3);
-	MovePieceAt(grid[y][x].value(), 0, 0, x, y);
+	grid[y][x].GetPiece()->GetSprite().setPosition(boardPosition.x + xPieceOffset - xTileOffset * 4, boardPosition.y + yPieceOffset + yTileOffset * 3);
+	MovePieceAt(*grid[y][x].GetPiece(), 0, 0, x, y);
 }
 
 void Board::Draw(sf::RenderWindow& window)
@@ -58,12 +96,27 @@ void Board::Draw(sf::RenderWindow& window)
 	{
 		for (int width = 0; width < size; width++)
 		{
-			if (grid[height][width].has_value())
+			if (grid[height][width].GetPiece() != nullptr)
 			{
-				window.draw(grid[height][width].value().GetSprite());
+				window.draw(grid[height][width].GetPiece()->GetSprite());
 			}
 		}
 	}
+}
+
+void Board::SelectClickedPiece(const sf::Vector2f& position) const
+{
+	for (const auto& piece : pieces)
+	{
+		if (piece->GetSprite().getGlobalBounds().contains(position))
+		{
+			std::cout << "Sprite " << PieceTypeAsString(piece->GetType()) << " clicked!" << '\n';
+
+			return;
+		}
+	}
+
+	std::cout << "No Sprite" << '\n';
 }
 
 void Board::MovePieceAt(Piece& piece, const uint8_t xFrom, const uint8_t yFrom, const uint8_t xTo, const uint8_t yTo) const
@@ -71,6 +124,7 @@ void Board::MovePieceAt(Piece& piece, const uint8_t xFrom, const uint8_t yFrom, 
 	piece.GetSprite().move((xTo - xFrom) * xTileOffset, (yTo - yFrom) * -yTileOffset);
 }
 
-//Piece Board::GetPieceAt(int x, int y)
-//{
-//}
+Piece& Board::GetPieceAt(const uint8_t x, const uint8_t y)
+{
+	return *grid[y][x].GetPiece();
+}

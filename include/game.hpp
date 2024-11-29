@@ -17,4 +17,6 @@ public:
 	Game();
 
 	void DrawGameSprites(sf::RenderWindow& window);
+
+	constexpr Board& GetBoard() { return board; }
 };

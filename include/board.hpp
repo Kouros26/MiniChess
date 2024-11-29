@@ -3,6 +3,7 @@
 #include <optional>
 
 #include "piece.hpp"
+#include "square.hpp"
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Graphics/Sprite.hpp"
 #include "SFML/Graphics/Texture.hpp"
@@ -14,7 +15,9 @@ class Board
 
 	static constexpr uint8_t size = 8;
 
-	std::array<std::array<std::optional<Piece>, size>, size> grid{};
+	std::vector<std::unique_ptr<Piece>> pieces;
+
+	std::array<std::array<Square, size>, size> grid{};
 
 	uint8_t xPieceOffset = 16;
 	uint8_t yPieceOffset = 17;
@@ -32,7 +35,9 @@ public:
 
 	void Draw(sf::RenderWindow& window);
 
+	void SelectClickedPiece(const sf::Vector2f& position) const;
+
 	void MovePieceAt(Piece& piece, uint8_t xFrom, uint8_t yFrom, uint8_t xTo, uint8_t yTo) const;
 
-	Piece GetPieceAt(int x, int y);
+	Piece& GetPieceAt(const uint8_t x, const uint8_t y);
 };

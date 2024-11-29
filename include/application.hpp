@@ -3,7 +3,6 @@
 
 #include "game.hpp"
 #include "SFML/Graphics/RenderWindow.hpp"
-#include "SFML/Graphics/Sprite.hpp"
 
 class Application
 {
