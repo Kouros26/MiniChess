@@ -44,6 +44,8 @@ class Board
 	std::vector<sf::Vector2f> GetAvailableMovesPositions(Piece& piece);
 
 	bool CheckSquare(std::vector<sf::Vector2f>& finalVector, const Color pieceColor, const int8_t x, const int8_t y);
+	std::vector<sf::Vector2f>& CheckCastling(std::vector<sf::Vector2f>& finalVector, Piece& piece);
+
 	std::vector<sf::Vector2f> PawnMovement(Piece& piece);
 
 	//void ShowAvailableMoves(sf::RenderWindow& window, Piece& piece) const;

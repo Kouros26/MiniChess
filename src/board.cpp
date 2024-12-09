@@ -215,6 +215,11 @@ std::vector<sf::Vector2f> Board::GetAvailableMovesPositions(Piece& piece)
 			break;
 	}
 
+	if (piece.GetType() == PieceType::King)
+	{
+		CheckCastling(finalVector, piece);
+	}
+
 	return finalVector;
 }
 
@@ -243,6 +248,61 @@ bool Board::CheckSquare(std::vector<sf::Vector2f>& finalVector, const Color piec
 
 }
 
+std::vector<sf::Vector2f>& Board::CheckCastling(std::vector<sf::Vector2f>& finalVector, Piece& piece)
+{
+	if (piece.HasMoved())
+		return finalVector;
+
+	BoardCoord coords = piece.GetBoardPosition();
+	King& king = static_cast<King&>(piece);
+
+	bool leftValid = false;
+	bool rightValid = false;
+
+	Piece*& rookOne = GetPieceAt(coords.x - 4, coords.y);
+	Piece*& rookTwo = GetPieceAt(coords.x + 3, coords.y);
+
+	if (rookOne != nullptr && rookOne->GetType() == PieceType::Rook && !rookOne->HasMoved())
+	{
+		leftValid = true;
+
+		for (int8_t i = coords.x - 1; i >= 1; i--)
+		{
+			if (GetPieceAt(i, coords.y) != nullptr)
+			{
+				leftValid = false;
+				break;
+			}
+		}
+	}
+
+	if (rookTwo != nullptr && rookTwo->GetType() == PieceType::Rook && !rookTwo->HasMoved())
+	{
+		rightValid = true;
+
+		for (int8_t i = coords.x + 1; i < size - 1; i++)
+		{
+			if (GetPieceAt(i, coords.y) != nullptr)
+			{
+				rightValid = false;
+				break;
+			}
+		}
+	}
+
+	if (leftValid)
+	{
+		finalVector.push_back(BoardCoordToPos(BoardCoord(coords.x - 2, coords.y)));
+	}
+
+	if (rightValid)
+	{
+		finalVector.push_back(BoardCoordToPos(BoardCoord(coords.x + 2, coords.y)));
+	}
+
+	return finalVector;
+}
+
 std::vector<sf::Vector2f> Board::PawnMovement(Piece& piece)
 {
 	std::vector<sf::Vector2f> finalVector;
@@ -259,7 +319,8 @@ std::vector<sf::Vector2f> Board::PawnMovement(Piece& piece)
 
 	if (pieceColor == Color::White)
 	{
-		for (BoardCoord coordsIncr = coords + BoardCoord{ .x = 0, .y = 1 };
+		BoardCoord coordsIncr;
+		for (coordsIncr = coords + BoardCoord{ .x = 0, .y = 1 };
 			coordsIncr.y < size && vertical > 0;
 			coordsIncr = coordsIncr + BoardCoord{ .x = 0, .y = 1}, vertical--)	// Check for up
 		{
@@ -271,7 +332,7 @@ std::vector<sf::Vector2f> Board::PawnMovement(Piece& piece)
 			}
 		}
 
-		BoardCoord coordsIncr = coords + BoardCoord{ .x = -1, .y = 1 };
+		coordsIncr = coords + BoardCoord{ .x = -1, .y = 1 };
 		if (coordsIncr.x >= 0 && coordsIncr.y < size)							// Check for up-left
 		{
 			Piece* tempPiece = GetPieceAt(coordsIncr.x, coordsIncr.y);
@@ -302,7 +363,8 @@ std::vector<sf::Vector2f> Board::PawnMovement(Piece& piece)
 
 	else
 	{
-		for (BoardCoord coordsIncr = coords + BoardCoord{ .x = 0, .y = -1 };
+		BoardCoord coordsIncr;
+		for (coordsIncr = coords + BoardCoord{ .x = 0, .y = -1 };
 			coordsIncr.y >= 0 && vertical > 0;
 			coordsIncr = coordsIncr - BoardCoord{ .x = 0, .y = 1 }, vertical--) // Check for down
 		{
@@ -314,7 +376,7 @@ std::vector<sf::Vector2f> Board::PawnMovement(Piece& piece)
 			}
 		}
 
-		BoardCoord coordsIncr = coords - BoardCoord{ .x = 1, .y = 1 };
+		coordsIncr = coords - BoardCoord{ .x = 1, .y = 1 };
 		if (coordsIncr.x >= 0 && coordsIncr.y >= 0)								// Check for down-left
 		{
 			Piece* tempPiece = GetPieceAt(coordsIncr.x, coordsIncr.y);
@@ -388,7 +450,22 @@ void Board::SelectClickedPiece(const sf::Vector2f& position)
 
 		if (delta.x < 50 && delta.y < 50)
 		{
-			MovePieceAt(*selectedPiece, PosToBoardCoord(spotPosition));
+			BoardCoord newCoords = PosToBoardCoord(spotPosition);
+
+			if (selectedPiece->GetType() == PieceType::King && std::abs(selectedPiece->GetBoardPosition().x - newCoords.x) == 2)
+			{
+				if (newCoords.x == 2)
+				{
+					MovePieceAt(*GetPieceAt(0, newCoords.y), newCoords + BoardCoord{ .x = 1, .y= 0});
+				}
+
+				else
+				{
+					MovePieceAt(*GetPieceAt(size - 1, newCoords.y), newCoords - BoardCoord{ .x = 1, .y = 0 });
+				}
+			}
+
+			MovePieceAt(*selectedPiece, newCoords);
 			selectedPiece->SetHasMoved(true);
 
 			pieceAvailableMoves.clear();
@@ -419,7 +496,7 @@ void Board::MovePieceAt(Piece& piece, const BoardCoord coords)
 	BoardCoord previousCoords = piece.GetBoardPosition();
 	grid[previousCoords.y][previousCoords.x].SetPieceOnSquare(nullptr);
 
-	Piece* target = GetPieceAt(coords.x, coords.y);
+	Piece*& target = GetPieceAt(coords.x, coords.y);
 
 	if (target != nullptr && target->GetColor() != piece.GetColor())
 	{
