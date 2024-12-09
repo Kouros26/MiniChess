@@ -66,6 +66,7 @@ protected:
 	Color color = Color::White;
 
 	BoardCoord boardPosition;
+	bool hasMoved = false;
 
 public:
 
@@ -83,4 +84,7 @@ public:
 	constexpr PieceType GetType() const { return type; }
 	constexpr Color GetColor() const { return color; }
 	constexpr BoardCoord GetBoardPosition() const { return boardPosition; }
+
+	constexpr bool HasMoved() const { return hasMoved; }
+	constexpr void SetHasMoved(const bool value) { hasMoved = value; }
 };

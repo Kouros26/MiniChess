@@ -3,8 +3,6 @@
 
 class Pawn : public Piece
 {
-	bool hasMoved = false;
-
 public:
 
 	Pawn(const Color color, const unsigned x, const unsigned y);
